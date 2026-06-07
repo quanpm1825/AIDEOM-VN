@@ -110,11 +110,17 @@ def inline_local_assets(html: str) -> str:
     data_file = ROOT / "data.js"
     shared_file = ROOT / "shared.js"
     chatbot_file = ROOT / "chatbot.js"
+    anim_file = ROOT / "chart-animations.js"
 
     if css_file.exists():
         html = html.replace(
             '<link rel="stylesheet" href="styles.css">',
             f"<style>\n{css_file.read_text(encoding='utf-8')}\n</style>",
+        )
+    if anim_file.exists():
+        html = html.replace(
+            '<script src="chart-animations.js"></script>',
+            f"<script>\n{anim_file.read_text(encoding='utf-8')}\n</script>",
         )
     if data_file.exists():
         html = html.replace(
@@ -153,13 +159,4 @@ st.markdown(
             margin-bottom: 2px !important;
         }
         section[data-testid="stSidebar"] button:hover {
-            background: rgba(168,85,247,0.15) !important;
-            border-color: #a855f7 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Render full HTML in iframe (height matches typical page content)
-components.html(html_content, height=2400, scrolling=True)
+            background: rgba(168,85,247,0.15) 
