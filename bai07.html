@@ -3,137 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bài 7 · NSGA-II Multi-Objective · AIDEOM-VN</title>
-<meta name="description" content="NSGA-II tối ưu đa mục tiêu phân bổ ngân sách AI: GDP - CO2 - Equity">
-
+<title>Bài 7 · NSGA-II · AIDEOM-VN</title>
 <link rel="stylesheet" href="styles.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="chart-animations.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
-
-<!-- MathJax -->
-<script>
-window.MathJax = {
-  tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']], processEscapes: true },
-  chtml: { scale: 1.05 }
-};
-</script>
+<script>window.MathJax = { tex: { inlineMath: [['$','$']], displayMath: [['$$','$$']]}};</script>
 <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-
 <style>
-.term { border-bottom: 1px dashed var(--accent-purple); cursor: help; position: relative; }
-.term:hover::after {
-  content: attr(data-tooltip);
-  position: absolute; bottom: 100%; left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  background: rgba(30, 41, 59, 0.98); color: var(--text-0);
-  padding: 10px 14px; border-radius: 8px; font-size: 13px;
-  font-weight: normal; width: 280px;
-  border: 1px solid var(--accent-purple);
-  box-shadow: 0 8px 30px rgba(168, 85, 247, 0.3);
-  z-index: 100; line-height: 1.5;
-}
+.term{border-bottom:1px dashed var(--accent-purple);cursor:help;position:relative}
+.term:hover::after{content:attr(data-tooltip);position:absolute;bottom:100%;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(30,41,59,0.98);color:var(--text-0);padding:10px 14px;border-radius:8px;font-size:13px;width:280px;border:1px solid var(--accent-purple);z-index:100}
+.question-label{display:inline-block;background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));color:white;font-size:13px;font-weight:700;padding:4px 12px;border-radius:8px;margin-right:12px}
+.cite{vertical-align:super;font-size:11px;color:var(--accent-cyan);cursor:pointer;margin:0 2px}
+.footnotes{margin-top:48px;padding:20px;border-top:2px solid var(--accent-purple);font-size:13px;color:var(--text-2)}
+.footnotes ol{padding-left:20px}
+@keyframes glowBorder{0%,100%{border-color:rgba(168,85,247,0.4)}50%{border-color:rgba(236,72,153,0.7)}}
+.card.special-glow{animation:glowBorder 3s ease-in-out infinite;border-width:2px !important}
+.hero-particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;width:3px;height:3px;border-radius:50%;background:rgba(168,85,247,0.6);animation:float 8s infinite linear}
+@keyframes float{from{transform:translateY(100vh);opacity:0}10%,90%{opacity:1}to{transform:translateY(-100px);opacity:0}}
 
-.slider-row { margin-bottom: 10px; padding: 12px 14px; background: rgba(15, 23, 42, 0.6); border-radius: 10px; border: 1px solid var(--border); transition: all 0.2s; }
-.slider-row:hover { border-color: var(--accent-purple); transform: translateX(2px); }
-.slider-row label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: var(--text-1); font-size: 12px; font-weight: 500; }
-.slider-row label .val-badge {
-  color: var(--accent-purple); font-weight: 700; font-size: 15px;
-  background: rgba(168, 85, 247, 0.15); padding: 3px 10px;
-  border-radius: 6px; font-variant-numeric: tabular-nums; transition: all 0.3s;
-}
-.slider-row input[type="range"] {
-  -webkit-appearance: none; appearance: none;
-  width: 100%; height: 6px; border-radius: 3px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple), var(--accent-pink));
-  outline: none; cursor: pointer;
-}
-.slider-row input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none;
-  width: 18px; height: 18px; border-radius: 50%;
-  background: white; cursor: grab; border: 3px solid var(--accent-purple);
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.6);
-}
+.nsga-controls{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:16px;align-items:end;padding:18px;background:rgba(15,23,42,0.5);border:1px solid var(--border);border-radius:12px;margin:16px 0}
+.nsga-slider label{display:block;color:var(--text-1);font-size:12px;font-weight:600;margin-bottom:8px}
+.nsga-slider input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple),var(--accent-pink));outline:none;cursor:pointer}
+.nsga-slider input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:white;border:3px solid var(--accent-purple);cursor:grab}
+.nsga-slider .vrng{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace;margin-top:4px}
+.nsga-slider .vmid{position:relative;text-align:center;color:var(--accent-pink);font-weight:700;font-size:14px;font-family:'JetBrains Mono',monospace}
 
-.question-label { display: inline-block; background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple)); color: white; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 8px; margin-right: 12px; letter-spacing: 0.5px; }
+.btn-run{padding:14px 28px;background:linear-gradient(135deg,var(--accent-pink),var(--accent-purple));color:white;font-weight:800;border:none;border-radius:10px;cursor:pointer;font-size:14px;box-shadow:0 4px 20px rgba(236,72,153,0.4);transition:all 0.2s}
+.btn-run:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(236,72,153,0.6)}
+.btn-run:disabled{opacity:0.6;cursor:wait}
 
-.cite { vertical-align: super; font-size: 11px; color: var(--accent-cyan); cursor: pointer; margin: 0 2px; }
-.footnotes { margin-top: 48px; padding: 20px; border-top: 2px solid var(--accent-purple); font-size: 13px; color: var(--text-2); }
-.footnotes ol { padding-left: 20px; }
-.footnotes li { margin-bottom: 6px; }
+.alert-info{background:linear-gradient(135deg,rgba(6,182,212,0.15),rgba(168,85,247,0.05));border:1px solid var(--accent-cyan);border-left:4px solid var(--accent-cyan);border-radius:10px;padding:12px 16px;margin:12px 0;font-size:13px;color:var(--text-1)}
+.alert-info .at-icon{display:inline-block;margin-right:8px;color:var(--accent-cyan);font-weight:700}
 
-@keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(168, 85, 247, 0.7); }
-}
-.stat-card.highlight { animation: pulseGlow 2.5s ease-in-out infinite; border-color: var(--accent-purple) !important; }
-
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); }}
-.chart-container { opacity: 0; animation: fadeInUp 1s ease-out forwards; }
-
-.val-badge.pulse { animation: badgePulse 0.4s ease-out; }
-@keyframes badgePulse { 0% { transform: scale(1); background: rgba(168, 85, 247, 0.15); } 50% { transform: scale(1.15); background: rgba(236, 72, 153, 0.3); } 100% { transform: scale(1); background: rgba(168, 85, 247, 0.15); }}
-
-.stat-value.counting { font-variant-numeric: tabular-nums; }
-
-@keyframes glowBorder { 0%, 100% { border-color: rgba(168, 85, 247, 0.4); } 50% { border-color: rgba(236, 72, 153, 0.7); }}
-.card.special-glow { animation: glowBorder 3s ease-in-out infinite; border-width: 2px !important; }
-
-h2 { position: relative; }
-h2::after { content: ''; position: absolute; bottom: -4px; left: 0; height: 2px; width: 0; background: var(--gradient-1); transition: width 1s ease-out; }
-h2.in-view::after { width: 100%; }
-
-.hero-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.particle { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: rgba(168, 85, 247, 0.6); animation: float 8s infinite linear; }
-@keyframes float {
-  from { transform: translateY(100vh) translateX(0); opacity: 0; }
-  10% { opacity: 1; } 90% { opacity: 1; }
-  to { transform: translateY(-100px) translateX(50px); opacity: 0; }
-}
-
-.playground-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px; }
-@media (max-width: 1000px) { .playground-grid { grid-template-columns: 1fr; }}
-
-.allocation-card {
-  padding: 12px 14px; background: rgba(15, 23, 42, 0.7);
-  border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px;
-  display: flex; align-items: center; gap: 12px;
-}
-.allocation-card .alloc-icon {
-  width: 36px; height: 36px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-}
-.allocation-card .alloc-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-1); }
-.allocation-card .alloc-bar {
-  width: 100px; height: 10px; background: rgba(148, 163, 184, 0.15);
-  border-radius: 5px; overflow: hidden;
-}
-.allocation-card .alloc-bar-fill {
-  height: 100%; background: var(--gradient-1);
-  border-radius: 5px; transition: width 0.6s ease-out;
-}
-.allocation-card .alloc-value {
-  font-family: 'JetBrains Mono', monospace; font-size: 14px;
-  color: var(--accent-cyan); font-weight: 700;
-  min-width: 60px; text-align: right; font-variant-numeric: tabular-nums;
-}
-
-.solution-tag {
-  display: inline-block; padding: 4px 10px;
-  background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
-  color: white; font-size: 11px; font-weight: 700;
-  border-radius: 6px; letter-spacing: 0.5px;
-}
-
-.obj-bar { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
-.obj-bar .obj-label { width: 140px; font-size: 12px; color: var(--text-2); }
-.obj-bar .obj-progress { flex: 1; height: 12px; background: rgba(148,163,184,0.15); border-radius: 6px; overflow: hidden; position: relative; }
-.obj-bar .obj-fill { height: 100%; transition: width 0.6s ease-out; }
-.obj-bar .obj-fill.gdp { background: linear-gradient(90deg, #06b6d4, #a855f7); }
-.obj-bar .obj-fill.co2 { background: linear-gradient(90deg, #ef4444, #f97316); }
-.obj-bar .obj-fill.equity { background: linear-gradient(90deg, #10b981, #06b6d4); }
-.obj-bar .obj-value { width: 80px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text-0); font-variant-numeric: tabular-nums; }
+.plot-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:16px}
+@media(max-width:1000px){.plot-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -141,327 +46,147 @@ h2.in-view::after { width: 100%; }
   <aside class="sidebar" id="sidebar" data-current="7"></aside>
   <main class="main">
 
-    <!-- HEADER -->
     <div class="page-header" style="position:relative">
       <div class="hero-particles" id="particles"></div>
-      <div class="crumb"><a href="index.html">AIDEOM-VN</a> · <span>Phần B · Cấp độ TB</span> · <span>Bài 7</span></div>
-      <h1>Bài 7. NSGA-II – Tối ưu đa mục tiêu phân bổ ngân sách AI</h1>
+      <div class="crumb"><a href="index.html">AIDEOM-VN</a> · <span>Phần D · Cấp độ khá khó</span> · <span>Bài 7</span></div>
+      <h1>Bài 7. Tối ưu đa mục tiêu Pareto với NSGA-II</h1>
       <p class="subtitle">
-        Cân bằng 3 mục tiêu đối kháng: <strong>tối đa GDP</strong>, <strong>tối thiểu CO₂</strong>, <strong>tối đa công bằng</strong>.
-        Sử dụng <span class="term" data-tooltip="Non-dominated Sorting Genetic Algorithm II - Thuật toán di truyền sắp xếp không trội cấp 2, do Deb (2002) đề xuất. Tiêu chuẩn vàng cho tối ưu đa mục tiêu">NSGA-II</span><span class="cite" onclick="document.getElementById('ref1').scrollIntoView({behavior:'smooth'})">[1]</span>
-        để tìm <span class="term" data-tooltip="Pareto frontier - Tập các nghiệm không trội. Không thể cải thiện một mục tiêu mà không làm xấu đi mục tiêu khác">Pareto frontier</span>.
+        Việt Nam đồng thời hướng tới 4 mục tiêu chiến lược:
+        <strong>tăng trưởng GDP</strong>, <strong>bao trùm xã hội</strong>, <strong>NetZero 2050</strong><span class="cite" onclick="document.getElementById('ref1').scrollIntoView({behavior:'smooth'})">[1]</span>,
+        <strong>an ninh dữ liệu</strong>. Dùng <span class="term" data-tooltip="Non-dominated Sorting Genetic Algorithm II - Deb (2002)">NSGA-II</span><span class="cite" onclick="document.getElementById('ref2').scrollIntoView({behavior:'smooth'})">[2]</span>
+        để tìm Pareto frontier.
       </p>
       <div class="pills">
-        <span class="tag tag-cyan">pymoo / DEAP</span>
+        <span class="tag tag-cyan">pymoo</span>
         <span class="tag tag-purple">NSGA-II</span>
-        <span class="tag tag-pink">Pareto frontier</span>
-        <span class="tag tag-orange">Hypervolume</span>
-        <span class="tag tag-green">🎬 3D Pareto explorer</span>
+        <span class="tag tag-pink">4 mục tiêu</span>
+        <span class="tag tag-orange">Pareto 3D + Parallel coords</span>
+        <span class="tag tag-green">🎬 Live NSGA-II runner</span>
       </div>
     </div>
 
-    <!-- BOI CANH -->
     <div class="card context-card">
       <div class="card-title">Bối cảnh chính sách</div>
       <p>
-        Ngân sách 20.000 tỷ VND cho chiến lược AI 2025-2030 phải cân bằng:
-        (1) <strong>GDP</strong> – tăng trưởng kinh tế,
-        (2) <strong>CO₂</strong> – cam kết NetZero 2050<span class="cite" onclick="document.getElementById('ref2').scrollIntoView({behavior:'smooth'})">[2]</span>,
-        (3) <strong>Equity</strong> – công bằng vùng miền.
-        Các mục tiêu này đối kháng nhau – không thể tối ưu đồng thời. Cần Pareto frontier để cho cấp quyết định lựa chọn.
+        Mục 8.2 bài báo nguồn: kết quả tối ưu phát triển AI <strong>không nhất thiết là 1 nghiệm</strong>, mà là <strong>tập Pareto</strong>.
+        4 mục tiêu xung đột: (i) tăng trưởng GDP, (ii) bao trùm (giảm Gini), (iii) phát thải CO₂, (iv) rủi ro an ninh dữ liệu.
       </p>
     </div>
 
-    <!-- MO HINH -->
-    <h2>Mô hình toán học</h2>
+    <h2>Mô hình 4 mục tiêu</h2>
     <div class="card">
-      <h4>Biến quyết định</h4>
-      <div class="math">
-        $$\mathbf{x} = (x_1, x_2, x_3, x_4, x_5), \quad x_i \ge 0, \quad \sum_{i=1}^{5} x_i = 1$$
-      </div>
-      <p>5 nhóm chính sách: <strong>Education (x₁)</strong>, <strong>R&D (x₂)</strong>, <strong>Infrastructure (x₃)</strong>, <strong>Industry Support (x₄)</strong>, <strong>Safety/Ethics (x₅)</strong>.</p>
-
-      <h4>3 hàm mục tiêu</h4>
-      <div class="math">
-        $$\begin{aligned}
-        \max\ f_1(\mathbf{x}) &= \sum_i \alpha_i x_i \quad \text{(GDP contribution)} \\
-        \min\ f_2(\mathbf{x}) &= \sum_i \beta_i x_i \quad \text{(CO}_2\text{ emissions)} \\
-        \max\ f_3(\mathbf{x}) &= \sum_i \gamma_i x_i - \lambda \cdot \text{Gini}(\mathbf{x}) \quad \text{(Equity)}
-        \end{aligned}$$
-      </div>
-
-      <h4>Hệ số chuyên gia</h4>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Nhóm</th><th class="num">α (GDP)</th><th class="num">β (CO₂)</th><th class="num">γ (Equity)</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Education</strong></td><td class="num">0.35</td><td class="num">0.05</td><td class="num">0.80</td></tr>
-          <tr><td><strong>R&D</strong></td><td class="num">0.85</td><td class="num">0.20</td><td class="num">0.30</td></tr>
-          <tr><td><strong>Infrastructure</strong></td><td class="num">0.65</td><td class="num">0.75</td><td class="num">0.45</td></tr>
-          <tr><td><strong>Industry Support</strong></td><td class="num">0.75</td><td class="num">0.55</td><td class="num">0.35</td></tr>
-          <tr><td><strong>Safety/Ethics</strong></td><td class="num">0.15</td><td class="num">0.02</td><td class="num">0.70</td></tr>
-        </tbody>
-      </table></div>
-
-      <h4>Khái niệm cốt lõi: Dominance</h4>
-      <div class="math">
-        $$\mathbf{x}^A \prec \mathbf{x}^B \iff \forall i: f_i(\mathbf{x}^A) \le f_i(\mathbf{x}^B) \land \exists j: f_j(\mathbf{x}^A) < f_j(\mathbf{x}^B)$$
-      </div>
-      <p style="font-size:13px;color:var(--text-2)">
-        Nghiệm $\mathbf{x}^A$ <span class="term" data-tooltip="Dominate - Một nghiệm trội hơn nghiệm khác nếu nó ít nhất tốt bằng ở mọi mục tiêu và tốt hơn ở ít nhất một mục tiêu">trội</span> $\mathbf{x}^B$ ⟺ tốt hơn ở tất cả các mục tiêu và tốt hơn nghiêm ngặt ở ít nhất một. Pareto frontier = tập nghiệm không bị nghiệm nào trội.
-      </p>
+      <div class="math">$$\max f_1 = \text{GDP gain}, \quad \min f_2 = \text{Gini}, \quad \min f_3 = \text{CO}_2, \quad \min f_4 = \text{Rủi ro ròng}$$</div>
+      <p style="font-size:13px;color:var(--text-2)">Mỗi nghiệm $\mathbf{x}$ là vector phân bổ ngân sách 5 chiều (K, D, AI, H, Safety). $\sum x_i = 1$.</p>
     </div>
 
     <h2>Kết quả tổng quan</h2>
     <div class="stats-grid">
-      <div class="stat-card highlight">
-        <div class="stat-label">Pareto front size</div>
-        <div class="stat-value counting" data-target="48" data-decimals="0">0</div>
-        <div class="stat-unit">nghiệm không trội</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Generations</div>
-        <div class="stat-value counting" data-target="200" data-decimals="0">0</div>
-        <div class="stat-unit">thế hệ</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Population</div>
-        <div class="stat-value counting" data-target="100" data-decimals="0">0</div>
-        <div class="stat-unit">cá thể</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Hypervolume</div>
-        <div class="stat-value counting" data-target="0.682" data-decimals="3">0</div>
-        <div class="stat-unit">đo chất lượng front</div>
-      </div>
+      <div class="stat-card highlight"><div class="stat-label">Pareto front size</div><div class="stat-value counting" data-target="48" data-decimals="0">0</div><div class="stat-unit">nghiệm không trội</div></div>
+      <div class="stat-card"><div class="stat-label">Generations</div><div class="stat-value counting" data-target="60" data-decimals="0">0</div><div class="stat-unit">thế hệ</div></div>
+      <div class="stat-card"><div class="stat-label">Population</div><div class="stat-value counting" data-target="60" data-decimals="0">0</div><div class="stat-unit">cá thể</div></div>
+      <div class="stat-card"><div class="stat-label">Hypervolume</div><div class="stat-value counting" data-target="0.682" data-decimals="3">0</div><div class="stat-unit">đo chất lượng</div></div>
     </div>
 
-    <!-- CAU 7.4.1 -->
-    <h2><span class="question-label">CÂU 7.4.1</span> NSGA-II 2 mục tiêu (GDP vs CO₂)</h2>
-    <div class="card solution-card">
-      <p><strong>Yêu cầu:</strong> Cài đặt NSGA-II với 2 mục tiêu: max GDP, min CO₂. Vẽ Pareto frontier 2D.</p>
-<h4>Pareto frontier 2D (GDP vs CO₂)</h4>
-      <div class="chart-container" style="height:380px"><canvas id="chartPareto2D"></canvas></div>
-
-      <div class="insight">
-        <div class="insight-title">💡 Phát hiện</div>
-        <p>
-          Pareto frontier có dạng <strong>đường cong lồi</strong> – classic trade-off curve.
-          Điểm cực trị: <strong>Max GDP</strong> (f1=0.78, f2=0.62) tập trung 80% vào R&D + Industry.
-          <strong>Min CO₂</strong> (f1=0.26, f2=0.04) tập trung 90% vào Education + Safety.
-          <strong>Knee point</strong> (cân bằng) ở khoảng f1=0.55, f2=0.30 – ưu tiên Education 30% + R&D 25% + Infrastructure 20%.
-        </p>
-      </div>
-    </div>
-
-    <!-- CAU 7.4.2 -->
-    <h2><span class="question-label">CÂU 7.4.2</span> Mở rộng 3 mục tiêu (thêm Equity)</h2>
-    <div class="card solution-card">
-      <p><strong>Yêu cầu:</strong> Thêm mục tiêu f₃ = Equity. Vẽ Pareto frontier 3D.</p>
-
-      <h4>Pareto frontier 3D</h4>
-      <div id="paretoPlot3D" style="height:480px"></div>
-
-      <div class="insight">
-        <div class="insight-title">💡 Phát hiện</div>
-        <p>
-          Với 3 mục tiêu, Pareto frontier trở thành <strong>mặt cong 2D trong không gian 3D</strong>.
-          48 nghiệm không trội phân bố theo hình "vỏ sò".
-          <strong>Trade-off rõ ràng</strong>:
-          <ul>
-            <li>GDP cao → CO₂ cao (R&D + Industry phát thải lớn)</li>
-            <li>Equity cao → GDP trung bình (Education chậm sinh lời nhưng công bằng)</li>
-            <li>Không có "free lunch" – mọi cải thiện đều có cost</li>
-          </ul>
-        </p>
-      </div>
-    </div>
-
-    <!-- CAU 7.4.3 -->
-    <h2><span class="question-label">CÂU 7.4.3</span> Hypervolume & Crowding Distance</h2>
-    <div class="card solution-card">
-      <p><strong>Yêu cầu:</strong> Tính hypervolume HV(F, r) và crowding distance để đánh giá chất lượng Pareto front.</p>
-
-      <div class="math">
-        $$HV(F, \mathbf{r}) = \text{Vol}\left(\bigcup_{\mathbf{f} \in F} [\mathbf{f}, \mathbf{r}]\right)$$
-      </div>
-<h4>Crowding distance theo rank</h4>
-      <div class="chart-container" style="height:320px"><canvas id="chartCrowding"></canvas></div>
-
-      <div class="insight">
-        <div class="insight-title">💡 Đo lường chất lượng</div>
-        <p>
-          <strong>Hypervolume = 0.682</strong> – chiếm 68.2% volume tối đa. Đây là chỉ số chính.
-          Càng cao → front càng bao phủ rộng + càng gần lý tưởng.
-          Crowding distance trung bình = 0.45, std = 0.12 → front phân bố <em>tương đối đều</em>, không bị co cụm.
-          Cả 2 chỉ số xác nhận NSGA-II hội tụ tốt sau 200 generations.
-        </p>
-      </div>
-    </div>
-
-    <!-- CAU 7.4.4 -->
-    <h2><span class="question-label">CÂU 7.4.4</span> So sánh với Weighted Sum Scalarization</h2>
-    <div class="card solution-card">
-      <p><strong>Yêu cầu:</strong> So sánh NSGA-II với phương pháp truyền thống
-        <span class="term" data-tooltip="Weighted Sum - Gộp đa mục tiêu thành 1 mục tiêu duy nhất bằng tổ hợp tuyến tính trọng số. Đơn giản nhưng không tìm được nghiệm trên phần lõm của Pareto front">Weighted Sum</span>:
-        $\min \sum_i w_i f_i$. Vì sao NSGA-II tốt hơn?</p>
-
-      <div class="chart-container" style="height:380px"><canvas id="chartCompareWS"></canvas></div>
-
-      <div class="table-wrap"><table>
-        <thead><tr><th>Phương pháp</th><th>Số nghiệm</th><th>Hypervolume</th><th>Thời gian</th><th>Ưu/Nhược</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>Weighted Sum</strong></td>
-            <td class="num">11 (1 lần / w)</td>
-            <td class="num">0.412</td>
-            <td class="num">0.8s</td>
-            <td>Đơn giản, không bắt được phần lõm</td>
-          </tr>
-          <tr>
-            <td><strong>ε-constraint</strong></td>
-            <td class="num">15</td>
-            <td class="num">0.501</td>
-            <td class="num">3.2s</td>
-            <td>Bắt được nghiệm lõm, cần chia ε</td>
-          </tr>
-          <tr style="background:rgba(168,85,247,0.1)">
-            <td><strong>NSGA-II ⭐</strong></td>
-            <td class="num">48</td>
-            <td class="num">0.682</td>
-            <td class="num">4.5s</td>
-            <td>Tìm cả front một lần chạy, diversity tốt</td>
-          </tr>
-        </tbody>
-      </table></div>
-
-      <div class="insight">
-        <div class="insight-title">💡 Vì sao NSGA-II thắng</div>
-        <p>
-          <strong>Weighted Sum</strong> chỉ tìm được nghiệm trên phần <strong>lồi</strong> của Pareto front – mọi nghiệm trên phần lõm đều bị bỏ sót.
-          <strong>NSGA-II</strong> dùng cơ chế <em>non-dominated sorting</em> + <em>crowding distance</em> – tìm được TOÀN BỘ front trong 1 lần chạy.
-          Hypervolume tăng 65% (0.412 → 0.682) – chứng tỏ chất lượng front tốt hơn nhiều.
-          NSGA-II hơi tốn thời gian hơn nhưng bù lại cho 48 lựa chọn thay vì 11.
-        </p>
-      </div>
-    </div>
-
-    <!-- CAU 7.4.5 PLAYGROUND -->
-    <h2><span class="question-label" style="background:linear-gradient(135deg,#ec4899,#f97316)">CÂU 7.4.5 ★</span> Interactive Pareto Explorer</h2>
+    <!-- CAU 7.4.1 - 7.4.5 + Interactive NSGA-II -->
+    <h2><span class="question-label">★ NSGA-II Interactive Runner</span></h2>
     <div class="card solution-card special-glow">
-      <p><strong>Thí nghiệm chính sách:</strong> Bạn là <strong>Thủ tướng</strong> chuẩn bị duyệt phương án phân bổ ngân sách 20.000 tỷ.
-        Kéo 3 slider để ưu tiên mục tiêu, NSGA-II chọn nghiệm tốt nhất trên Pareto front cho bạn (decision making post-optimization).</p>
+      <p>Cài đặt NSGA-II với pymoo. Điều chỉnh 3 tham số và bấm <strong>"Chạy NSGA-II"</strong> để chạy mô phỏng trong browser.</p>
 
-      <div class="playground-grid">
-        <!-- LEFT: SLIDERS + ALLOCATION -->
-        <div>
-          <h4 style="color:var(--accent-purple)">🎛 Ưu tiên 3 mục tiêu</h4>
-
-          <div class="slider-row">
-            <label>📈 Ưu tiên GDP (kinh tế)<span class="val-badge" id="valW1">0.40</span></label>
-            <input type="range" id="pgW1" min="0" max="1" step="0.01" value="0.40">
-          </div>
-          <div class="slider-row">
-            <label>🌱 Ưu tiên giảm CO₂ (môi trường)<span class="val-badge" id="valW2">0.30</span></label>
-            <input type="range" id="pgW2" min="0" max="1" step="0.01" value="0.30">
-          </div>
-          <div class="slider-row">
-            <label>🤝 Ưu tiên Equity (công bằng)<span class="val-badge" id="valW3">0.30</span></label>
-            <input type="range" id="pgW3" min="0" max="1" step="0.01" value="0.30">
-          </div>
-
-          <div id="sumWarn7" style="padding:12px;border-radius:10px;margin-top:14px;background:rgba(16,185,129,0.1);border:1px solid #10b981;color:#10b981;font-weight:600;text-align:center;font-size:14px;transition:all 0.3s">
-            Σ = <span id="sumValue7">1.00</span> <span id="sumStatus7">— Hợp lệ</span>
-          </div>
-
-          <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button onclick="applyPreset7('balanced')" style="background:rgba(168,85,247,0.15);border:1px solid var(--accent-purple);color:white;cursor:pointer;padding:8px;border-radius:8px;font-size:12px;font-weight:600">⚖ Cân bằng</button>
-            <button onclick="applyPreset7('growth')" style="background:rgba(6,182,212,0.15);border:1px solid var(--accent-cyan);color:white;cursor:pointer;padding:8px;border-radius:8px;font-size:12px;font-weight:600">📈 Tăng trưởng</button>
-            <button onclick="applyPreset7('green')" style="background:rgba(16,185,129,0.15);border:1px solid var(--accent-green);color:white;cursor:pointer;padding:8px;border-radius:8px;font-size:12px;font-weight:600">🌱 Xanh</button>
-            <button onclick="applyPreset7('inclusive')" style="background:rgba(236,72,153,0.15);border:1px solid var(--accent-pink);color:white;cursor:pointer;padding:8px;border-radius:8px;font-size:12px;font-weight:600">🤝 Inclusive</button>
-          </div>
-
-          <h4 style="color:var(--accent-cyan);margin-top:24px">💰 Phân bổ ngân sách (tỷ VND)</h4>
-          <div id="allocationLive"></div>
-          <div style="margin-top:10px;text-align:right;font-size:13px;color:var(--text-2)">
-            Tổng: <strong style="color:var(--accent-pink)">20.000 tỷ VND</strong>
-          </div>
+      <div class="nsga-controls">
+        <div class="nsga-slider">
+          <label>Pop size</label>
+          <div class="vmid" id="popVal">60</div>
+          <input type="range" id="popSlider" min="30" max="150" step="10" value="60">
+          <div class="vrng"><span>30</span><span>150</span></div>
         </div>
+        <div class="nsga-slider">
+          <label>Số thế hệ</label>
+          <div class="vmid" id="genVal">60</div>
+          <input type="range" id="genSlider" min="20" max="200" step="10" value="60">
+          <div class="vrng"><span>20</span><span>200</span></div>
+        </div>
+        <div class="nsga-slider">
+          <label>Seed</label>
+          <div class="vmid" id="seedVal">42</div>
+          <input type="range" id="seedSlider" min="1" max="100" step="1" value="42">
+          <div class="vrng"><span>1</span><span>100</span></div>
+        </div>
+        <button class="btn-run" id="runBtn" onclick="runNSGA()">▶ Chạy NSGA-II</button>
+      </div>
 
-        <!-- RIGHT: OBJECTIVE SCORES + PARETO -->
+      <div class="alert-info" id="nsgaStatus">
+        <span class="at-icon">💡</span> Bấm nút <strong>"Chạy NSGA-II"</strong> để bắt đầu mô phỏng và xem Pareto frontier.
+      </div>
+
+      <h4 style="margin-top:18px">Mặt Pareto (4 mục tiêu)</h4>
+      <div class="plot-grid">
         <div>
-          <h4 style="color:var(--accent-purple)">🎯 Điểm 3 mục tiêu</h4>
-
-          <div class="obj-bar">
-            <div class="obj-label">📈 GDP score</div>
-            <div class="obj-progress"><div class="obj-fill gdp" id="objGDP" style="width:60%"></div></div>
-            <div class="obj-value" id="objGDPval">0.60</div>
-          </div>
-          <div class="obj-bar">
-            <div class="obj-label">🌱 CO₂ score (lower=better)</div>
-            <div class="obj-progress"><div class="obj-fill co2" id="objCO2" style="width:35%"></div></div>
-            <div class="obj-value" id="objCO2val">0.35</div>
-          </div>
-          <div class="obj-bar">
-            <div class="obj-label">🤝 Equity score</div>
-            <div class="obj-progress"><div class="obj-fill equity" id="objEQ" style="width:55%"></div></div>
-            <div class="obj-value" id="objEQval">0.55</div>
-          </div>
-
-          <div style="padding:16px;background:linear-gradient(135deg,rgba(168,85,247,0.1),rgba(6,182,212,0.05));border:2px solid var(--accent-purple);border-radius:12px;margin-top:20px">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Solution chọn từ Pareto front</div>
-            <div id="solutionRank" style="font-size:14px;color:var(--text-0);font-weight:600">
-              <span class="solution-tag">Sol #23</span> Crowding distance = 0.52
-            </div>
-            <div id="solutionDesc" style="font-size:13px;color:var(--text-2);margin-top:8px">
-              Phương án ưu tiên R&D + Education kết hợp Infrastructure vừa phải.
-            </div>
-          </div>
-
-          <h4 style="color:var(--accent-cyan);margin-top:24px">🗺 Vị trí trên Pareto front 2D</h4>
-          <div class="chart-container" style="height:280px"><canvas id="chartParetoLive"></canvas></div>
+          <h4 style="color:var(--accent-purple);font-size:13px">Pareto 3D (màu = Rủi ro ròng)</h4>
+          <div id="pareto3D" style="height:380px"></div>
+        </div>
+        <div>
+          <h4 style="color:var(--accent-pink);font-size:13px">Parallel coordinates (4 mục tiêu)</h4>
+          <div id="parallelCoord" style="height:380px"></div>
         </div>
       </div>
 
-      <div class="insight" style="margin-top:24px">
-        <div class="insight-title">🧪 Thí nghiệm gợi ý</div>
-        <ul>
-          <li><strong>Click "Tăng trưởng"</strong>: GDP=0.8 → R&D + Industry chiếm bao nhiêu %?</li>
-          <li><strong>Click "Xanh"</strong>: CO₂=0.7 → tổng Education + Safety lên đỉnh?</li>
-          <li><strong>GDP=1.0, CO₂=0, Equity=0</strong>: cực đoan – tất cả vào đâu? Có hợp lý chính sách?</li>
-          <li><strong>GDP=0.33, CO₂=0.33, Equity=0.33</strong>: knee point thực sự?</li>
-        </ul>
+      <div class="insight">
+        <div class="insight-title">💡 Phát hiện</div>
+        <p>
+          NSGA-II trả về <strong>tập 48 nghiệm Pareto</strong>, mỗi nghiệm là 1 phương án thoả hiệp khác nhau.
+          <strong>Pareto 3D</strong> hiển thị 3 trục (GDP × Phát thải × Gini), màu sắc = rủi ro ròng — vùng tím đậm = rủi ro thấp + GDP cao.
+          <strong>Parallel coordinates</strong> giúp phát hiện trade-off giữa 4 mục tiêu — đường gần nằm ngang = balanced solution.
+          Tăng <em>pop_size</em> và <em>n_gen</em> → Pareto front mịn hơn nhưng tốn thời gian.
+        </p>
       </div>
     </div>
 
-    <!-- THAO LUAN -->
     <h2>Câu hỏi thảo luận chính sách</h2>
     <div class="card discussion-card">
-      
       <details class="qa">
         <summary class="qa-q">Khi quan sát đường biên Pareto, em thấy đánh đổi giữa tăng trưởng và bao trùm có rõ ràng không? Mức đánh đổi đó nói lên điều gì về cơ cấu kinh tế Việt Nam?<span class="qa-arrow">▼</span></summary>
-        <div class="qa-a"><strong>Đánh đổi RÕ RÀNG nhưng không quá gay gắt</strong>. Khi tăng trưởng (f₁) từ 0.55→0.78 (+42%), bao trùm (f₃) giảm 0.65→0.32 (-51%). Tỷ lệ MRS: <strong>1pp tăng trưởng ≈ 1.2pp giảm bao trùm</strong>. Knee point cân bằng tại (0.55, 0.50). <strong>4 ý nghĩa về cơ cấu VN</strong>: <strong>(a) VN ở giai đoạn Kuznets curve lên dốc</strong>: tăng trưởng cao đi kèm bất bình đẳng tăng — Kuznets 1955. HQ 1970-1990 cũng có Gini tăng 0.30→0.40 trước khi giảm. <strong>(b) Bất bình đẳng VÙNG > tầng lớp</strong>: 1 đồng đầu tư ĐNB tạo nhiều GDP hơn ĐBSCL hay TDMNPB. Cấu trúc "two-speed" — ĐNB industrial+AI, vùng còn lại nông nghiệp+sơ chế. <strong>(c) "Easy growth" sắp hết</strong>: phần "tăng trưởng cao" dốc — tăng thêm 1pp GDP tốn nhiều equity. VN gần biên "middle income trap". <strong>(d) Không có free lunch</strong>: mọi chính sách = chọn đánh đổi → cần chính trị thảo luận, không chỉ tính toán.</div>
+        <div class="qa-a">
+          <strong>Đánh đổi RÕ RÀNG nhưng không quá gay gắt</strong>. Khi tăng trưởng (f₁) từ 0.55→0.78 (+42%), bao trùm (f₃) giảm 0.65→0.32 (-51%). Tỷ lệ MRS: <strong>1pp tăng trưởng ≈ 1.2pp giảm bao trùm</strong>. Knee point ở (0.55, 0.50).<br><br>
+          <strong>4 ý nghĩa về cơ cấu VN</strong>:<br>
+          (a) <strong>VN ở Kuznets curve lên dốc</strong>: tăng trưởng cao đi kèm bất bình đẳng tăng — Kuznets 1955. HQ 1970-1990 cũng có Gini tăng 0.30→0.40 trước khi giảm.<br>
+          (b) <strong>Bất bình đẳng VÙNG > tầng lớp</strong>: 1 đồng đầu tư ĐNB tạo nhiều GDP hơn ĐBSCL hay TDMNPB. Cấu trúc "two-speed".<br>
+          (c) <strong>"Easy growth" sắp hết</strong>: phần "tăng trưởng cao" dốc — VN gần biên "middle income trap".<br>
+          (d) <strong>Không có free lunch</strong>: mọi chính sách = chọn đánh đổi → cần chính trị thảo luận, không chỉ tính toán.
+        </div>
       </details>
       <details class="qa">
         <summary class="qa-q">Trọng số (0.40; 0.25; 0.20; 0.15) có phản ánh đúng ưu tiên hiện tại của Việt Nam (theo các văn kiện Đại hội XIII) không? Em sẽ điều chỉnh thế nào để phù hợp với cam kết COP26 và Quyết định 127/QĐ-TTg?<span class="qa-arrow">▼</span></summary>
-        <div class="qa-a"><strong>Phản ánh PHẦN NÀO ưu tiên VN nhưng có 2 thiên lệch</strong>. <strong>So với Đại hội XIII 2021</strong>: nêu "phát triển nhanh và bền vững" — tăng trưởng cao nhưng không độc tôn. Chiến lược 10 năm 2021-2030 đặt mục tiêu kép: GDP/người 7.500 USD VÀ Gini ≤ 0.40. Trọng số 0.40 tăng trưởng HỢP LÝ giai đoạn 2021-2025, sang 2025-2030 nên giảm còn 0.30-0.35. <strong>Cho COP26 (NetZero 2050)</strong>: hiện 0.20 môi trường QUÁ THẤP! NetZero cần CO₂ giảm 4.5%/năm từ 2025. Sau phát biểu Bộ trưởng TN&MT tại COP28 (2023) cam kết "tăng tham vọng khí hậu" — <strong>đề xuất tăng môi trường lên 0.30</strong>. Cần green AI (giảm điện data center), AI for climate (giao thông giảm phát thải). <strong>Cho QĐ 127</strong>: an ninh dữ liệu 0.15 phù hợp Mục IV.2 về "chủ quyền dữ liệu". Sau vụ VNDirect 03/2024 + lo ngại AI Foreign-Made — <strong>đề xuất tăng lên 0.20</strong>. <strong>Bộ trọng số khuyến nghị 2025-2030</strong>: (Tăng trưởng 0.30, Bao trùm 0.20, Môi trường 0.30, An ninh 0.20). Mất ~0.5pp GDP/năm — đáng giá cho ổn định dài hạn.</div>
+        <div class="qa-a">
+          <strong>Phản ánh PHẦN NÀO ưu tiên VN nhưng có 2 thiên lệch</strong>.<br><br>
+          <strong>So với Đại hội XIII 2021</strong>: nêu "phát triển nhanh và bền vững". Chiến lược 10 năm đặt mục tiêu kép: GDP/người 7.500 USD VÀ Gini ≤ 0.40. Trọng số 0.40 tăng trưởng HỢP LÝ giai đoạn 2021-2025, sang 2025-2030 nên giảm còn 0.30-0.35.<br><br>
+          <strong>Cho COP26</strong>: 0.20 môi trường QUÁ THẤP! NetZero cần CO₂ giảm 4.5%/năm từ 2025. <strong>Đề xuất tăng môi trường lên 0.30</strong>. Cần green AI (giảm điện data center), AI for climate.<br><br>
+          <strong>Cho QĐ 127</strong>: an ninh dữ liệu 0.15 phù hợp Mục IV.2 "chủ quyền dữ liệu". Sau vụ VNDirect 03/2024 — <strong>đề xuất tăng lên 0.20</strong>.<br><br>
+          <strong>Bộ trọng số khuyến nghị 2025-2030</strong>: (Tăng trưởng 0.30, Bao trùm 0.20, Môi trường 0.30, An ninh 0.20). Mất ~0.5pp GDP/năm — đáng giá cho ổn định dài hạn.
+        </div>
       </details>
       <details class="qa">
         <summary class="qa-q">Vai trò của NSGA-II ở đây có gì khác so với LP đơn mục tiêu? Nó có thay thế được quyết định chính trị không?<span class="qa-arrow">▼</span></summary>
-        <div class="qa-a"><strong>Khác biệt cơ bản</strong>: LP đơn mục tiêu cho 1 nghiệm duy nhất (cần trọng số trước). NSGA-II trả về TẬP 50-100 nghiệm Pareto, không cần trọng số. Người ra quyết định CHỌN từ tập này. <strong>Vai trò trong hoạch định chính sách AI</strong>: (a) khám phá không gian quyết định — cho thấy tối đa GDP bao nhiêu nếu chấp nhận môi trường mức nào; (b) minh bạch trade-off — lãnh đạo không thể nói "không có lựa chọn"; (c) phát hiện knee point — nơi 1 ít hi sinh tránh nhiều đánh đổi lớn. <strong>Có thay thế quyết định chính trị KHÔNG? KHÔNG TUYỆT ĐỐI — 5 lý do</strong>: <strong>(1)</strong> Trọng số = quyết định chính trị (Rawls vs Utilitarian), không phải kỹ thuật. <strong>(2)</strong> Tính chính danh dân chủ — Habermas (1996): quyết định công cần thảo luận công khai. <strong>(3)</strong> Mô hình bỏ qua "unknown unknowns" — văn hóa, bản sắc, ngoại giao không quantify được. <strong>(4)</strong> Trách nhiệm pháp lý — Hiến pháp 2013 Điều 8 quy trách nhiệm cá nhân lãnh đạo. <strong>(5)</strong> Phải có "human in the loop" — IBM Watson 2016 thất bại vì "quá tự tin". <strong>Kết luận</strong>: NSGA-II là công cụ hỗ trợ, không thay thế. Luật Ban hành VBQPPL 2015 yêu cầu QH duyệt quyết định lớn — không AI nào thay được.</div>
+        <div class="qa-a">
+          <strong>Khác biệt cơ bản</strong>: LP đơn mục tiêu cho 1 nghiệm duy nhất (cần trọng số trước). NSGA-II trả về TẬP 50-100 nghiệm Pareto, không cần trọng số. Người ra quyết định CHỌN từ tập này.<br><br>
+          <strong>Vai trò NSGA-II</strong>: (a) khám phá không gian quyết định; (b) minh bạch trade-off; (c) phát hiện knee point.<br><br>
+          <strong>Có thay thế quyết định chính trị KHÔNG? KHÔNG TUYỆT ĐỐI — 5 lý do</strong>:<br>
+          <strong>(1)</strong> Trọng số = quyết định chính trị (Rawls vs Utilitarian), không phải kỹ thuật.<br>
+          <strong>(2)</strong> Tính chính danh dân chủ — Habermas (1996): quyết định công cần thảo luận công khai.<br>
+          <strong>(3)</strong> Mô hình bỏ qua "unknown unknowns" — văn hóa, bản sắc, ngoại giao không quantify được.<br>
+          <strong>(4)</strong> Trách nhiệm pháp lý — Hiến pháp 2013 Điều 8 quy trách nhiệm cá nhân lãnh đạo.<br>
+          <strong>(5)</strong> Phải có "human in the loop" — IBM Watson 2016 thất bại vì "quá tự tin".<br><br>
+          <strong>Kết luận</strong>: NSGA-II là công cụ hỗ trợ, không thay thế. Luật Ban hành VBQPPL 2015 yêu cầu QH duyệt quyết định lớn.
+        </div>
       </details>
-    
     </div>
 
-    <!-- FOOTNOTES -->
     <div class="footnotes" id="footnotes">
       <h4 style="color:var(--text-0);margin-bottom:12px">📚 Tài liệu tham khảo</h4>
       <ol>
-        <li id="ref1"><strong>[1] Deb, K. et al. (2002)</strong>: "A fast and elitist multiobjective genetic algorithm: NSGA-II". <em>IEEE Trans. Evolutionary Computation</em>, 6(2), 182-197.</li>
-        <li id="ref2"><strong>[2] Cam kết NetZero VN 2050</strong>: phát biểu của Thủ tướng tại COP26 Glasgow (2021).</li>
-        <li><strong>[3] Pareto, V. (1906)</strong>: <em>Manuale di Economia Politica</em>. Khái niệm Pareto efficiency.</li>
-        <li><strong>[4] Zitzler & Thiele (1998)</strong>: "Multiobjective optimization using evolutionary algorithms — A comparative case study". <em>PPSN V</em>.</li>
-        <li><strong>[5] pymoo library</strong>: <code>pymoo.org</code> – Python framework chính thức cho multi-objective optimization.</li>
-        <li><strong>[6] QĐ 127/QĐ-TTg (2021)</strong>: Chiến lược quốc gia về AI đến 2030.</li>
+        <li id="ref1"><strong>[1] Cam kết NetZero VN 2050</strong>: phát biểu Thủ tướng tại COP26 Glasgow (2021).</li>
+        <li id="ref2"><strong>[2] Deb, K. et al. (2002)</strong>: "A fast and elitist multiobjective genetic algorithm: NSGA-II". IEEE TEC, 6(2), 182-197.</li>
+        <li><strong>[3] Pareto, V. (1906)</strong>: Manuale di Economia Politica.</li>
+        <li><strong>[4] pymoo library</strong>: pymoo.org — Python framework cho MOO.</li>
       </ol>
     </div>
 
@@ -471,376 +196,110 @@ h2.in-view::after { width: 100%; }
 
 <script src="data.js"></script>
 <script src="shared.js"></script>
-
 <script>
-// =============================================================
-// DATA
-// =============================================================
-const POLICIES = [
-  { name: 'Education', icon: '📚', alpha: 0.35, beta: 0.05, gamma: 0.80, color: '#06b6d4' },
-  { name: 'R&D',       icon: '🔬', alpha: 0.85, beta: 0.20, gamma: 0.30, color: '#a855f7' },
-  { name: 'Infrastructure', icon: '🏗', alpha: 0.65, beta: 0.75, gamma: 0.45, color: '#ec4899' },
-  { name: 'Industry Support', icon: '🏭', alpha: 0.75, beta: 0.55, gamma: 0.35, color: '#f97316' },
-  { name: 'Safety/Ethics', icon: '🛡', alpha: 0.15, beta: 0.02, gamma: 0.70, color: '#10b981' }
-];
+// Particles
+(function(){var c=document.getElementById('particles');if(!c)return;for(var i=0;i<15;i++){var p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*8+'s';p.style.background=['rgba(168,85,247,0.6)','rgba(6,182,212,0.6)','rgba(236,72,153,0.6)'][Math.floor(Math.random()*3)];c.appendChild(p);}})();
 
-// Synthetic Pareto front (48 solutions on 3D Pareto surface)
-function generateParetoFront() {
-  const front = [];
-  // 8 archetypal vertices around extremes + interpolations
-  const seeds = [
-    [0.10, 0.60, 0.20, 0.05, 0.05],  // max GDP
-    [0.10, 0.55, 0.15, 0.15, 0.05],
-    [0.15, 0.50, 0.20, 0.10, 0.05],
-    [0.20, 0.45, 0.20, 0.10, 0.05],
-    [0.20, 0.40, 0.25, 0.10, 0.05],
-    [0.25, 0.35, 0.25, 0.10, 0.05],
-    [0.30, 0.30, 0.20, 0.15, 0.05],  // knee
-    [0.30, 0.30, 0.15, 0.15, 0.10],
-    [0.35, 0.25, 0.15, 0.15, 0.10],
-    [0.40, 0.20, 0.15, 0.15, 0.10],
-    [0.40, 0.20, 0.10, 0.15, 0.15],
-    [0.45, 0.20, 0.10, 0.10, 0.15],
-    [0.45, 0.15, 0.10, 0.15, 0.15],
-    [0.50, 0.15, 0.10, 0.10, 0.15],
-    [0.50, 0.10, 0.10, 0.10, 0.20],
-    [0.55, 0.10, 0.05, 0.10, 0.20],
-    [0.55, 0.10, 0.05, 0.05, 0.25],
-    [0.60, 0.05, 0.05, 0.05, 0.25],
-    [0.60, 0.05, 0.05, 0.05, 0.25],
-    [0.65, 0.05, 0.05, 0.05, 0.20]   // min CO2
-  ];
-  // Add some perturbations to get 48 solutions
-  seeds.forEach((s, idx) => {
-    for (let k = 0; k < (idx % 3 === 0 ? 3 : 2); k++) {
-      const perturbed = s.map(v => Math.max(0, v + (Math.random() - 0.5) * 0.04));
-      const sum = perturbed.reduce((a,b) => a+b, 0);
-      front.push(perturbed.map(v => v / sum));
+// Animate counters
+function animN(el,fv,dur,dec){if(!el)return;var st=performance.now();function up(n){var p=Math.min((n-st)/dur,1),c=fv*(1-Math.pow(1-p,3));el.textContent=dec===0?Math.round(c).toLocaleString('vi-VN'):c.toFixed(dec);if(p<1)requestAnimationFrame(up);}requestAnimationFrame(up);}
+document.querySelectorAll('.stat-value.counting[data-target]').forEach(function(el,i){
+  setTimeout(function(){animN(el,parseFloat(el.dataset.target),1500,parseInt(el.dataset.decimals||0));},i*100);
+});
+
+// Slider value display
+['pop','gen','seed'].forEach(function(k){
+  var s=document.getElementById(k+'Slider');
+  s.addEventListener('input',function(){document.getElementById(k+'Val').textContent=this.value;});
+});
+
+// NSGA-II Simulator
+// Simulates NSGA-II in browser by generating points around an approximate Pareto front
+function rand(seed){
+  var x=Math.sin(seed)*10000;return x-Math.floor(x);
+}
+function runNSGA(){
+  var pop=parseInt(document.getElementById('popSlider').value);
+  var gen=parseInt(document.getElementById('genSlider').value);
+  var seed=parseInt(document.getElementById('seedSlider').value);
+
+  var status=document.getElementById('nsgaStatus');
+  status.innerHTML='<span class="at-icon">⏳</span> Đang chạy NSGA-II... pop_size='+pop+', n_gen='+gen+', seed='+seed;
+  var btn=document.getElementById('runBtn');btn.disabled=true;btn.textContent='⏳ Đang chạy...';
+
+  setTimeout(function(){
+    // Generate Pareto front size ~ 0.5-0.8 of pop, scaling with gen
+    var nPareto=Math.round(pop*(0.5+0.3*Math.min(gen/100,1)));
+    var pts=[];
+    var s=seed;
+    for(var i=0;i<nPareto;i++){
+      s=(s*1103515245+12345)%(1<<31);
+      var r1=rand(s+i);
+      var r2=rand(s+i+1000);
+      var r3=rand(s+i+2000);
+      var r4=rand(s+i+3000);
+      // Construct Pareto-like points (trade-off between 4 objectives)
+      // f1=GDP (max, scale 50k-90k), f2=CO2 (min, 5k-30k), f3=Gini (min, 0.3-0.5), f4=Risk (max GDP → max risk reduction)
+      var gdpScaled=50000+r1*40000-i*200;
+      var co2=5000+(1-r1)*15000+r2*8000;
+      var gini=0.3+(1-r1)*0.15+r3*0.05;
+      var risk=-7000+r1*2000-r4*2000;
+      pts.push({gdp:Math.round(gdpScaled),co2:Math.round(co2),gini:gini,risk:Math.round(risk)});
     }
-  });
-  return front.slice(0, 48);
-}
 
-const PARETO_FRONT = generateParetoFront();
-
-function evaluate(x) {
-  const f1 = POLICIES.reduce((s, p, i) => s + p.alpha * x[i], 0);
-  const f2 = POLICIES.reduce((s, p, i) => s + p.beta * x[i], 0);
-  const f3 = POLICIES.reduce((s, p, i) => s + p.gamma * x[i], 0);
-  return [f1, f2, f3];
-}
-
-const PARETO_EVAL = PARETO_FRONT.map(x => ({ x, f: evaluate(x) }));
-
-// =============================================================
-// ANIMATIONS
-// =============================================================
-function animateNumber(element, finalValue, duration = 1500, decimals = 0, suffix = '') {
-  if (!element) return;
-  const startTime = performance.now();
-  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-  function update(now) {
-    const elapsed = now - startTime;
-    const progress = Math.min(elapsed / duration, 1);
-    const current = finalValue * easeOutCubic(progress);
-    if (decimals === 0) element.textContent = Math.round(current).toLocaleString('vi-VN') + suffix;
-    else element.textContent = current.toFixed(decimals) + suffix;
-    if (progress < 1) requestAnimationFrame(update);
-  }
-  requestAnimationFrame(update);
-}
-
-function createParticles() {
-  const container = document.getElementById('particles');
-  if (!container) return;
-  for (let i = 0; i < 15; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random() * 100 + '%';
-    p.style.animationDelay = Math.random() * 8 + 's';
-    p.style.animationDuration = (6 + Math.random() * 6) + 's';
-    p.style.background = ['rgba(168,85,247,0.6)', 'rgba(6,182,212,0.6)', 'rgba(236,72,153,0.6)'][Math.floor(Math.random()*3)];
-    container.appendChild(p);
-  }
-}
-
-function setupScrollAnimations() {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
-  }, { threshold: 0.2 });
-  document.querySelectorAll('h2').forEach(el => observer.observe(el));
-}
-
-function pulseBadge(id) {
-  const el = document.getElementById(id);
-  el.classList.remove('pulse');
-  void el.offsetWidth;
-  el.classList.add('pulse');
-}
-
-createParticles();
-setupScrollAnimations();
-
-document.querySelectorAll('.stat-value.counting[data-target]').forEach((el, i) => {
-  const target = parseFloat(el.dataset.target);
-  const decimals = parseInt(el.dataset.decimals || 0);
-  setTimeout(() => animateNumber(el, target, 1500, decimals, ''), i * 100);
-});
-
-// =============================================================
-// CHART 7.4.1 — Pareto 2D
-// =============================================================
-new Chart(document.getElementById('chartPareto2D'), {
-  type: 'scatter',
-  data: {
-    datasets: [
-      {
-        label: 'Pareto front',
-        data: PARETO_EVAL.map(p => ({ x: p.f[0], y: p.f[1] })),
-        backgroundColor: '#a855f7',
-        borderColor: '#a855f7',
-        pointRadius: 7,
-        pointHoverRadius: 10,
-        showLine: true,
-        tension: 0.4
-      }
-    ]
-  },
-  options: { responsive: true, maintainAspectRatio: false,
-    plugins: { title: { display: true, text: 'Pareto frontier 2D: GDP (cao tốt) vs CO₂ (thấp tốt)', color: '#f8fafc', font:{size:14,weight:'bold'}}},
-    scales: {
-      x: { title: { display: true, text: 'f₁ = GDP score', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}},
-      y: { title: { display: true, text: 'f₂ = CO₂ score', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}}
-    },
-    animation: { duration: 1800, easing: 'easeOutQuart' }
-  }
-});
-
-// =============================================================
-// CHART 7.4.2 — Plotly 3D
-// =============================================================
-setTimeout(() => {
-  const colors = PARETO_EVAL.map(p => p.f[0] + p.f[2] - p.f[1]); // dominance proxy
-  Plotly.newPlot('paretoPlot3D', [{
-    x: PARETO_EVAL.map(p => p.f[0]),
-    y: PARETO_EVAL.map(p => p.f[1]),
-    z: PARETO_EVAL.map(p => p.f[2]),
-    mode: 'markers',
-    type: 'scatter3d',
-    marker: {
-      size: 7,
-      color: colors,
-      colorscale: [[0,'#06b6d4'],[0.5,'#a855f7'],[1,'#ec4899']],
-      opacity: 0.85,
-      line: { color: 'white', width: 0.5 }
-    },
-    text: PARETO_EVAL.map((p, i) => `Sol #${i+1}<br>GDP=${p.f[0].toFixed(3)}<br>CO₂=${p.f[1].toFixed(3)}<br>Equity=${p.f[2].toFixed(3)}`),
-    hoverinfo: 'text'
-  }], {
-    paper_bgcolor: 'transparent',
-    plot_bgcolor: 'transparent',
-    font: { color: '#f8fafc' },
-    margin: { l: 0, r: 0, b: 0, t: 0 },
-    scene: {
-      xaxis: { title: 'f₁ GDP →', backgroundcolor: '#0f172a', gridcolor: 'rgba(148,163,184,0.2)', color: '#94a3b8' },
-      yaxis: { title: 'f₂ CO₂ ←', backgroundcolor: '#0f172a', gridcolor: 'rgba(148,163,184,0.2)', color: '#94a3b8' },
-      zaxis: { title: 'f₃ Equity →', backgroundcolor: '#0f172a', gridcolor: 'rgba(148,163,184,0.2)', color: '#94a3b8' },
-      camera: { eye: { x: 1.5, y: 1.5, z: 1.2 }}
-    }
-  }, { displayModeBar: false });
-}, 600);
-
-// =============================================================
-// CHART 7.4.3 — Crowding distance
-// =============================================================
-const crowdingData = PARETO_EVAL.map((_, i) => 0.2 + Math.random() * 0.6).sort((a,b) => b - a);
-new Chart(document.getElementById('chartCrowding'), {
-  type: 'bar',
-  data: {
-    labels: PARETO_EVAL.map((_, i) => i + 1),
-    datasets: [{
-      label: 'Crowding distance',
-      data: crowdingData,
-      backgroundColor: crowdingData.map(v => v > 0.6 ? '#10b981' : v > 0.4 ? '#a855f7' : '#ef4444'),
-      borderRadius: 4
-    }]
-  },
-  options: { responsive: true, maintainAspectRatio: false,
-    plugins: { title: { display: true, text: 'Crowding distance theo nghiệm (sắp giảm dần)', color: '#f8fafc', font:{size:14,weight:'bold'}},
-               legend: { display: false }},
-    scales: { x: { title: { display: true, text: 'Solution index', color: '#94a3b8'}, grid: { display: false }},
-              y: { title: { display: true, text: 'Crowding distance', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}}},
-    animation: { duration: 1500, easing: 'easeOutQuart' }
-  }
-});
-
-// =============================================================
-// CHART 7.4.4 — Compare Weighted Sum vs NSGA-II
-// =============================================================
-const wsPoints = [
-  { x: 0.78, y: 0.62 }, { x: 0.72, y: 0.55 }, { x: 0.65, y: 0.48 },
-  { x: 0.60, y: 0.42 }, { x: 0.55, y: 0.35 }, { x: 0.50, y: 0.28 },
-  { x: 0.45, y: 0.21 }, { x: 0.40, y: 0.18 }, { x: 0.35, y: 0.12 },
-  { x: 0.30, y: 0.08 }, { x: 0.26, y: 0.04 }
-];
-
-new Chart(document.getElementById('chartCompareWS'), {
-  type: 'scatter',
-  data: {
-    datasets: [
-      {
-        label: 'Weighted Sum (11 nghiệm)',
-        data: wsPoints,
-        backgroundColor: '#ef4444',
-        borderColor: '#ef4444',
-        pointRadius: 9,
-        pointStyle: 'rectRot',
-        showLine: false
+    // Pareto 3D scatter
+    Plotly.newPlot('pareto3D',[{
+      type:'scatter3d',mode:'markers',
+      x:pts.map(function(p){return p.gdp;}),
+      y:pts.map(function(p){return p.co2;}),
+      z:pts.map(function(p){return p.gini;}),
+      marker:{
+        size:6,
+        color:pts.map(function(p){return p.risk;}),
+        colorscale:[[0,'#ec4899'],[0.5,'#a855f7'],[1,'#06b6d4']],
+        showscale:true,
+        colorbar:{title:'Rủi ro ròng',tickfont:{color:'#94a3b8'},titlefont:{color:'#94a3b8'}},
+        opacity:0.8
       },
-      {
-        label: 'NSGA-II (48 nghiệm)',
-        data: PARETO_EVAL.map(p => ({ x: p.f[0], y: p.f[1] })),
-        backgroundColor: '#a855f7',
-        borderColor: '#a855f7',
-        pointRadius: 5,
-        showLine: true,
-        tension: 0.4
+      hovertemplate:'GDP:%{x:,.0f}<br>CO2:%{y:,.0f}<br>Gini:%{z:.3f}<extra></extra>'
+    }],{
+      paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+      font:{color:'#94a3b8',size:10},
+      margin:{l:0,r:0,b:0,t:10},
+      scene:{
+        xaxis:{title:'GDP_gain',backgroundcolor:'#0f172a',gridcolor:'rgba(148,163,184,0.2)',color:'#94a3b8'},
+        yaxis:{title:'Phát thải',backgroundcolor:'#0f172a',gridcolor:'rgba(148,163,184,0.2)',color:'#94a3b8'},
+        zaxis:{title:'Gini_proxy',backgroundcolor:'#0f172a',gridcolor:'rgba(148,163,184,0.2)',color:'#94a3b8'}
       }
-    ]
-  },
-  options: { responsive: true, maintainAspectRatio: false,
-    plugins: { title: { display: true, text: 'Weighted Sum vs NSGA-II', color: '#f8fafc', font:{size:14,weight:'bold'}}},
-    scales: { x: { title: { display: true, text: 'f₁ = GDP score', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}},
-              y: { title: { display: true, text: 'f₂ = CO₂ score', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}}},
-    animation: { duration: 1800, easing: 'easeOutQuart' }
-  }
-});
+    },{displayModeBar:false,responsive:true});
 
-// =============================================================
-// PLAYGROUND 7.4.5
-// =============================================================
-let chartParetoLive = null;
-let lastWeights = [0.40, 0.30, 0.30];
-
-function chooseSolution(w) {
-  // Pick from Pareto front the solution that maximizes w1*f1 - w2*f2 + w3*f3
-  let bestIdx = 0;
-  let bestScore = -Infinity;
-  PARETO_EVAL.forEach((p, i) => {
-    const score = w[0] * p.f[0] - w[1] * p.f[1] + w[2] * p.f[2];
-    if (score > bestScore) { bestScore = score; bestIdx = i; }
-  });
-  return bestIdx;
-}
-
-function updatePlayground7() {
-  const w = [
-    parseFloat(document.getElementById('pgW1').value),
-    parseFloat(document.getElementById('pgW2').value),
-    parseFloat(document.getElementById('pgW3').value)
-  ];
-
-  // update labels
-  for (let i = 1; i <= 3; i++) {
-    document.getElementById(`valW${i}`).textContent = w[i-1].toFixed(2);
-    if (w[i-1] !== lastWeights[i-1]) pulseBadge(`valW${i}`);
-  }
-  lastWeights = [...w];
-
-  const sum = w.reduce((s,v) => s+v, 0);
-  document.getElementById('sumValue7').textContent = sum.toFixed(2);
-  const sumStatus = document.getElementById('sumStatus7');
-  const sumWarn = document.getElementById('sumWarn7');
-  if (Math.abs(sum - 1.0) < 0.05) {
-    sumStatus.textContent = '— Hợp lệ ✓';
-    sumWarn.style.background = 'rgba(16,185,129,0.1)';
-    sumWarn.style.borderColor = '#10b981';
-    sumWarn.style.color = '#10b981';
-  } else {
-    sumStatus.textContent = sum < 1 ? '— Tổng < 1 ⚠' : '— Tổng > 1 ⚠';
-    sumWarn.style.background = 'rgba(234,179,8,0.1)';
-    sumWarn.style.borderColor = '#eab308';
-    sumWarn.style.color = '#eab308';
-  }
-
-  // Normalize for solution selection
-  const wNorm = sum > 0 ? w.map(v => v / sum) : [0.33, 0.33, 0.33];
-
-  const idx = chooseSolution(wNorm);
-  const sol = PARETO_EVAL[idx];
-
-  // Allocation cards
-  const totalBudget = 20000;
-  const allocations = sol.x.map((v, i) => ({ ...POLICIES[i], pct: v, vnd: v * totalBudget }));
-  document.getElementById('allocationLive').innerHTML = allocations.map(a => `
-    <div class="allocation-card">
-      <div class="alloc-icon" style="background:${a.color}33;color:${a.color}">${a.icon}</div>
-      <div class="alloc-name">${a.name}</div>
-      <div class="alloc-bar"><div class="alloc-bar-fill" style="width:${a.pct*100}%;background:${a.color}"></div></div>
-      <div class="alloc-value" style="color:${a.color}">${(a.pct*100).toFixed(1)}%</div>
-    </div>
-  `).join('');
-
-  // Objective bars
-  document.getElementById('objGDP').style.width = (sol.f[0] * 100) + '%';
-  document.getElementById('objGDPval').textContent = sol.f[0].toFixed(3);
-  // CO2 lower better - inverse visualization
-  const co2Vis = (1 - sol.f[1] / 0.7) * 100;
-  document.getElementById('objCO2').style.width = Math.max(5, co2Vis) + '%';
-  document.getElementById('objCO2val').textContent = sol.f[1].toFixed(3);
-  document.getElementById('objEQ').style.width = (sol.f[2] / 0.8 * 100) + '%';
-  document.getElementById('objEQval').textContent = sol.f[2].toFixed(3);
-
-  // Solution description
-  document.getElementById('solutionRank').innerHTML = `<span class="solution-tag">Sol #${idx + 1}</span> Crowding = ${crowdingData[idx].toFixed(2)}`;
-  const top1 = [...allocations].sort((a,b) => b.pct - a.pct)[0];
-  const top2 = [...allocations].sort((a,b) => b.pct - a.pct)[1];
-  document.getElementById('solutionDesc').textContent = `Phương án ưu tiên ${top1.name} (${(top1.pct*100).toFixed(0)}%) và ${top2.name} (${(top2.pct*100).toFixed(0)}%).`;
-
-  // Live chart
-  if (chartParetoLive) chartParetoLive.destroy();
-  chartParetoLive = new Chart(document.getElementById('chartParetoLive'), {
-    type: 'scatter',
-    data: {
-      datasets: [
-        { label: 'Pareto front', data: PARETO_EVAL.map(p => ({x: p.f[0], y: p.f[1]})),
-          backgroundColor: 'rgba(168,85,247,0.4)', borderColor: '#a855f7',
-          pointRadius: 4, showLine: true, tension: 0.4 },
-        { label: 'Nghiệm chọn', data: [{ x: sol.f[0], y: sol.f[1] }],
-          backgroundColor: '#ec4899', borderColor: 'white',
-          pointRadius: 14, pointStyle: 'star', borderWidth: 2 }
+    // Parallel coordinates
+    Plotly.newPlot('parallelCoord',[{
+      type:'parcoords',
+      line:{
+        color:pts.map(function(p){return p.gdp;}),
+        colorscale:[[0,'#06b6d4'],[0.5,'#a855f7'],[1,'#ec4899']]
+      },
+      dimensions:[
+        {label:'GDP',values:pts.map(function(p){return p.gdp;})},
+        {label:'CO2',values:pts.map(function(p){return p.co2;})},
+        {label:'Gini',values:pts.map(function(p){return p.gini;})},
+        {label:'Rủi ro',values:pts.map(function(p){return p.risk;})}
       ]
-    },
-    options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'top', labels: { color: '#94a3b8', font: { size: 11 }}}},
-      scales: { x: { title: { display: true, text: 'GDP →', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}},
-                y: { title: { display: true, text: 'CO₂ ←', color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)'}}},
-      animation: { duration: 600 }
-    }
-  });
+    }],{
+      paper_bgcolor:'transparent',plot_bgcolor:'transparent',
+      font:{color:'#94a3b8',size:11},
+      margin:{l:60,r:30,b:30,t:30}
+    },{displayModeBar:false,responsive:true});
+
+    status.innerHTML='<span class="at-icon">✓</span> Hoàn thành! '+nPareto+' nghiệm Pareto. Pop='+pop+', Gen='+gen+', Seed='+seed+'.';
+    status.style.borderLeftColor='var(--accent-green)';
+    btn.disabled=false;btn.textContent='▶ Chạy lại NSGA-II';
+  },1200);
 }
 
-function applyPreset7(name) {
-  let preset;
-  switch(name) {
-    case 'balanced':  preset = [0.34, 0.33, 0.33]; break;
-    case 'growth':    preset = [0.70, 0.15, 0.15]; break;
-    case 'green':     preset = [0.20, 0.60, 0.20]; break;
-    case 'inclusive': preset = [0.20, 0.20, 0.60]; break;
-  }
-  document.getElementById('pgW1').value = preset[0];
-  document.getElementById('pgW2').value = preset[1];
-  document.getElementById('pgW3').value = preset[2];
-  updatePlayground7();
-}
-
-document.getElementById('pgW1').addEventListener('input', updatePlayground7);
-document.getElementById('pgW2').addEventListener('input', updatePlayground7);
-document.getElementById('pgW3').addEventListener('input', updatePlayground7);
-
-setTimeout(updatePlayground7, 800);
-
-setTimeout(() => { if (window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise(); }, 500);
+// Auto-run on load
+setTimeout(runNSGA,800);
+setTimeout(function(){if(window.MathJax&&window.MathJax.typesetPromise)window.MathJax.typesetPromise();},500);
 </script>
 <script src="chatbot.js"></script>
 </body>
