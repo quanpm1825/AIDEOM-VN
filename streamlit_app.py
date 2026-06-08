@@ -1,6 +1,7 @@
 """
 AIDEOM-VN Streamlit Wrapper.
-Serves 12 HTML pages with sidebar navigation, inlining CSS/JS for iframe.
+Serves 12 HTML pages with sidebar navigation.
+Hides duplicate HTML sidebar (Streamlit sidebar is used instead).
 """
 import streamlit as st
 from pathlib import Path
@@ -91,6 +92,20 @@ def inline_assets(html):
 
 
 html_content = inline_assets(html_content)
+
+# Inject CSS to hide HTML sidebar (Streamlit provides its own sidebar)
+# Also expand main content to full width since no HTML sidebar
+HIDE_HTML_SIDEBAR = (
+    "<style>"
+    ".sidebar{display:none!important;}"
+    ".layout{grid-template-columns:1fr!important;}"
+    ".main{padding:24px 32px 80px!important;max-width:100%!important;}"
+    "body{background:transparent!important;}"
+    "</style>"
+)
+
+# Inject right after <head> tag opening
+html_content = html_content.replace("</head>", HIDE_HTML_SIDEBAR + "</head>")
 
 st.markdown(
     "<style>#MainMenu{visibility:hidden;}footer{visibility:hidden;}"
